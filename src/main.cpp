@@ -20,12 +20,14 @@ int main1() {
 	char tmpBuf[1024];
 	twitterObj.setTwitterUsername("la_musice");
 	twitterObj.setTwitterPassword("Fortachon091");
-
+	
+	// Evito poner las contrasenas por seguridad
+	
 	cout << "test" << endl;
-	string consumerKey = "b3xOQ7MqJNDFAcXwOx35JdbSX";
-	string consumerKeysecret = "VKQNJCJW05YEFgaA6nfdR4x2BqrvpDdA9s0xykQGGAxGkCT9Bb";
-	string myOAuthAccessTokenKey = "780626992550989824-eDyB0LaTPTYig1JDK5X0t4SQPD7lw6W";
-	string myOAuthAccessTokenSecret = "rOBoLqzODfnRoFn8VbZrJCf7gVfrShaRYZtM3rvOUgtiG";
+	string consumerKey = "Key nuestra api";
+	string consumerKeysecret = "Key Secrete de nuestra api";
+	string myOAuthAccessTokenKey = "nuestro acceso mediante OAuth key";
+	string myOAuthAccessTokenSecret = "nuestro acceso mediante OAuth key secret";
 
 	// Setting Keys - Poniendo los tokens , username y password
 

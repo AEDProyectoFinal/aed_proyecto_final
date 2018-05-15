@@ -12,6 +12,14 @@
 #include<map>
 using namespace std;
 
+void imprimirmapa(map <string, int> &tabela) {
+  map<string, int>::iterator it;
+  for (it = tabela.begin(); it != tabela.end(); ++it) {
+    cout << it->first << ": " << it->second << endl;
+  }
+}
+
+
 int main(){
 
 	ArbolesAVL<string> lexicon;
@@ -63,16 +71,10 @@ int main(){
 		}
 	}
 	datos.close();
-
-	map<string, int>::iterator p = palanali.begin();
-	while(p!=palanali.end()){
-		cout << p->first << " : " << p->second << endl;
-	}
-
+	
+	imprimirmapa(palanali);
 
 
 }
 
-
-//Se presentan problemas en la inserción de los elementos del mapa.
 

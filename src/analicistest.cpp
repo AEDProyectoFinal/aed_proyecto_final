@@ -78,3 +78,49 @@ int main(){
 }
 
 
+
+//Nueva parte pa combinar introduciendo la sección de analicis de las palabras e introducirlas al histograma.
+
+#include<iostream>
+#include<fstream>
+#include<string>
+using namespace std;
+
+int main(){
+	ifstream doc;
+	doc.open("data/Twitter_API.txt");
+	string linea;
+	string tweet= "";
+	while(getline(doc, linea)){
+		for(int i = 0; i<linea.length(); i++){
+			if(linea[i]=='"'&&linea[i+1]=='t'&&linea[i+2]=='e'&&linea[i+3]=='x'&&linea[i+4]=='t'){
+				int e = i+8;
+				while(true){
+					if(linea[e]=='"')break;
+					else{
+					tweet.push_back(linea[e]);
+					e++;
+					}
+
+				}
+				if(!(tweet[0]=='R'&&tweet[1]=='T'&&tweet[2]==' ')){
+					cout << tweet << endl;
+					//En esta linea se puede guardar el tweet en una estructura.
+
+				}
+				i = i + tweet.size()+7;
+				tweet = "";
+			}
+		}
+	}
+	doc.close();
+
+
+
+}
+
+
+
+
+
+

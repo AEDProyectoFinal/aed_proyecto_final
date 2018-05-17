@@ -22,8 +22,8 @@ void imprimirmapa(map <string, int> &tabela) {
 }
 
 
-//Creación del arbol con el lexicón
-void crearlexicon(ArbolesAVL<string> & arbol){
+//Llena el arbol con el lexicón
+void llenarlexicon(ArbolesAVL<string> & arbol){
 	ifstream stopwords;
 	string stopw;
 	stopwords.open("data/stopwords-es.txt");
@@ -36,16 +36,8 @@ void crearlexicon(ArbolesAVL<string> & arbol){
 
 
 
-int main(){
-
-	ArbolesAVL<string> lexicon; //Arbol para stopwords
-	map<string, int> palanali;
-
-
-	crearlexicon(lexicon);//Se lena el arbol de stopwords
-	lexicon.imprimir();
-
-
+//Llena el mapa con las palabras
+void llenarhistogramapal(map<string, int> & mapa, ArbolesAVL<string> lexicon){
 
 	ifstream doc;
 		doc.open("data/Twitter_API.txt");
@@ -73,10 +65,10 @@ int main(){
 							if(tweet[it2]==' '||tweet[it2]==','||tweet[it2]==';'||tweet[it2]==':'||tweet[it2]=='('||tweet[it2]==')'||tweet[it2]=='.'){
 								if(!palabra.empty()){    //Se comprueba que no esté vacia la palabra.
 									if(!lexicon.buscar(palabra)){    //Se comprueba que no esté en el lexicón de stopwords
-										if(palanali.find(palabra) == palanali.end()){
-										    palanali.insert(pair<string,int>(palabra,1));
+										if(mapa.find(palabra) == mapa.end()){
+										    mapa.insert(pair<string,int>(palabra,1));
 										}else{
-											palanali[palabra]++;
+											mapa[palabra]++;
 										}
 										cout << palabra << "---";//Remover posteriormente
 									}
@@ -89,10 +81,10 @@ int main(){
 						//Nuevamente para incluir la ultima palabra
 						if(!palabra.empty()){    //Se comprueba que no esté vacia la palabra.
 							if(!lexicon.buscar(palabra)){    //Se comprueba que no esté en el lexicón de stopwords
-								if(palanali.find(palabra) == palanali.end()){
-									palanali.insert(pair<string,int>(palabra,1));
+								if(mapa.find(palabra) == mapa.end()){
+									mapa.insert(pair<string,int>(palabra,1));
 								}else{
-									palanali[palabra]++;
+									mapa[palabra]++;
 								}
 								cout << palabra << "---";//Remover posteriormente
 							}
@@ -106,8 +98,22 @@ int main(){
 		}
 	doc.close();
 
+}
 
 
+
+int main(){
+
+	ArbolesAVL<string> lexicon; //Arbol para stopwords
+	map<string, int> palanali;
+
+
+	crearlexicon(lexicon);//Se llena el arbol de stopwords
+	lexicon.imprimir();
+
+	llenarhistogramapal(palanali, lexicon);//Se llena el mapa para crear un histograma
+	
+	
 	imprimirmapa(palanali);
 
 

@@ -18,8 +18,8 @@ int main1() {
 	string replyMsg;
 	string tmpStr, tmpStr2;
 	char tmpBuf[1024];
-	twitterObj.setTwitterUsername("la_musice");
-	twitterObj.setTwitterPassword("Fortachon091");
+	twitterObj.setTwitterUsername("username");
+	twitterObj.setTwitterPassword("clave");
 	
 	// Evito poner las contrasenas por seguridad
 	

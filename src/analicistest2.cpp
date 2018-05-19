@@ -1,10 +1,3 @@
-/*
- * testAVL.cpp
- *
- *  Created on: 3/05/2018
- *      Author: vonnewmann
- */
-
 #include"ArbolesAVL.h"
 #include<iostream>
 #include<string>
@@ -24,8 +17,8 @@ public:
 	string indv;
 };
 
-// funcion coeficiente similitud
-float similitud(persona persona1,persona persona2){
+// funcion coeficiente similitud. 
+float similitud(persona persona1,persona persona2){	//Revisar el iterador, no funciones bien
 	map<string,int>::iterator it;
 	int cont = 0;
 	for(it = persona1.apuntador->begin(); it != persona1.apuntador->end();  it++){

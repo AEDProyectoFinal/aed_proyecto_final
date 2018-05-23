@@ -1,0 +1,281 @@
+#include <iostream>
+#include <string>
+#include <sstream>
+#include "twitcurl.h"
+#include "oauthlib.h"
+#include <algorithm>
+#include "ArbolAVL.h"
+using namespace std;
+
+FILE _iob[] = { *stdin,*stdout,*stderr };
+extern "C" FILE * __cdecl __iob_func(void) { return _iob; }
+extern "C" void __imp__set_output__format(void) {}
+float similitud(map<string, int> & mapa1, map<string, int> & mapa2);
+void imprimirmapaapun(map <string, int> *tabela);
+void imprimirmapa(map <string, int> &tabela);
+void llenartop(map<string, int> & mapa, map<string, int> & topmapa);
+bool Sort_by(const sort_map &a, const sort_map &b);
+void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon);
+void llenarlexicon(ArbolAVL<string> & arbol);
+void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, ArbolAVL<string>  & lexicon);
+
+//Clase de la cual van a ser los elementos correspondientes a los individuos
+class persona {
+public:
+	map<string, int> *apuntop;
+	string indv;
+};
+
+//Clase para almacenar los valores de un mapa
+class sort_map
+{
+public:
+	string key;
+	int val;
+};
+
+
+const float ntop = 50.0;//Definición del top
+
+int main() {
+
+	twitCurl twitterObj;
+	char tmpBuf[1024];
+	twitterObj.setTwitterUsername("jumianse");
+	twitterObj.setTwitterPassword("jumianse1234");
+
+	// Evito poner las contrasenas por seguridad
+
+	cout << "test" << endl;
+	string consumerKey = "ZFCEdnBJas6eZC8VjiZjsbo6a";
+	string consumerKeysecret = "sXGyCSoqFUvvl3doDxsQ1z8ZcjXCG6firChRKWFQWiZdiHk5Tw";
+	string myOAuthAccessTokenKey = "999023718406991874-X28I2Nj6KwxhsSyjDUUCRjKNviw3ZAS";
+	string myOAuthAccessTokenSecret = "14WknAYL6GOs5lePcLt4yR2dkXcuJk5XPJ5ldPKwxcILj";
+
+	// Setting Keys - Poniendo los tokens , username y password
+
+	/* Step 0: Set OAuth related params. These are got by registering your app at twitter.com */
+	twitterObj.getOAuth().setConsumerKey(consumerKey);
+	twitterObj.getOAuth().setConsumerSecret(consumerKeysecret);
+	twitterObj.getOAuth().setOAuthTokenKey(myOAuthAccessTokenKey);
+	twitterObj.getOAuth().setOAuthTokenSecret(myOAuthAccessTokenSecret);
+
+	//Crear Lexicon
+	ArbolAVL<string> lexicon;		//Arbol para stopwords
+	llenarlexicon(lexicon);		//Se llena el arbol de stopwords
+	lexicon.imprimir();		//Prueba
+
+
+	//Crear individuos
+	map<string, int> palanalip;		//mapa individuo 1
+	map<string, int> palanalif;		//mapa individuo 2
+	map<string, int> palanalid;		//mapa individuo 3
+
+	map<string, int>top50p;		//Top individuo 1
+	map<string, int>top50f;		//Top individuo 2
+	map<string, int>top50d;		//Top individuo 3
+
+	persona petro;		//Indiviudo 1
+	persona fajardo;	//Individuo 2
+	persona duque;		//Individuo 3
+	
+	petro.indv = "petro";
+	fajardo.indv = "fajardo";
+	duque.indv = "duque";
+
+	petro.apuntop = &top50p;
+	fajardo.apuntop = &top50f;
+	duque.apuntop = &top50d;
+
+
+
+	// Obtener histograma de palabras en tweets para cada individuo
+	llenar(petro.indv, palanalip, twitterObj, lexicon);
+	llenar(fajardo.indv, palanalif, twitterObj, lexicon);
+	llenar(duque.indv, palanalid, twitterObj, lexicon);
+
+
+	//Obtener el top N de cada individuo
+	llenartop(palanalip, top50p);
+	llenartop(palanalif, top50f);
+	llenartop(palanalid, top50d);
+
+
+	//Obtener coeficientes de similitud
+	float CS_P_D = similitud(*(petro.apuntop), *(duque.apuntop)); //En caso de no servir se pueden pasar los top50 respectivos
+	float CS_P_F = similitud(*(petro.apuntop), *(fajardo.apuntop));
+	float CS_D_F = similitud(*(duque.apuntop), *(fajardo.apuntop));
+
+
+
+	return 0;
+}
+
+
+
+//Funciones
+
+//Función que llena el mapa de cada individuo con la extracción de tweets 200 veces
+void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, ArbolAVL<string>  & lexicon) {
+	for (int i = 0; i <= 200; i++) {
+		 
+		string replyMsg = "";
+		if (twitterObj.search(tmpStr))
+		{
+			twitterObj.getLastWebResponse(replyMsg);
+			printf("\ntwitterClient:: twitCurl::search web response:\n%s\n", replyMsg.c_str());
+		}
+		else
+		{
+			twitterObj.getLastCurlError(replyMsg);
+			printf("\ntwitterClient:: twitCurl::search error:\n%s\n", replyMsg.c_str());
+		}
+
+
+
+		system("pause");
+		ofstream out("Twitter_API.txt");
+		out << replyMsg;
+
+		llenarhistogramapal(mapa, lexicon); // LLena el histograma que tanto se repiten las palabras en los tweets, con los datos obtenidos en cada loop
+
+		out.close();
+	}
+}
+
+//LLena el arbol con el lexicón
+void llenarlexicon(ArbolAVL<string> & arbol) {
+	ifstream stopwords;
+	string stopw;
+	stopwords.open("data/stopwords-es.txt");
+	while (getline(stopwords, stopw)) {
+		arbol.insertar(stopw);
+	}
+	stopwords.close();
+}
+
+
+//Llena el mapa con las palabras
+void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon) {
+
+	ifstream doc;
+	doc.open("Twitter_API.txt");
+	string linea;
+	string tweet = "";
+	while (getline(doc, linea)) {
+		for (int i = 0; i<linea.length(); i++) {
+			if (linea[i] == '"'&&linea[i + 1] == 't'&&linea[i + 2] == 'e'&&linea[i + 3] == 'x'&&linea[i + 4] == 't') {
+				int e = i + 8;
+				while (true) {
+					if (linea[e] == '"')break;
+					else {
+						tweet.push_back(linea[e]);
+						e++;
+					}
+
+				}
+				if (!(tweet[0] == 'R'&&tweet[1] == 'T'&&tweet[2] == ' ')) {
+					cout << tweet << endl;//Remover posteriormente
+										  //En esta linea se puede guardar el tweet en una estructura.
+
+										  //Contrucción del histograma.
+					string palabra = "";
+					for (int it2 = 0; it2 < tweet.length(); it2++) {
+						if (tweet[it2] == ' ' || tweet[it2] == ',' || tweet[it2] == ';' || tweet[it2] == ':' || tweet[it2] == '(' || tweet[it2] == ')' || tweet[it2] == '.' || tweet[it2] == '-') {
+							if (!palabra.empty()) {    //Se comprueba que no esté vacia la palabra.
+								if (!lexicon.buscar(palabra)) {    //Se comprueba que no esté en el lexicón de stopwords
+									if (mapa.find(palabra) == mapa.end()) {
+										mapa.insert(pair<string, int>(palabra, 1));
+									}
+									else {
+										mapa[palabra]++;
+									}
+									cout << palabra << "---";//Remover posteriormente
+								}
+							}
+							palabra = "";
+						}
+						else {
+							palabra += tweet[it2]; //Se van agregando los caracteres para formar la palabra
+						}
+					}
+					//Nuevamente para incluir la ultima palabra
+					if (!palabra.empty()) {    //Se comprueba que no esté vacia la palabra.
+						if (!lexicon.buscar(palabra)) {    //Se comprueba que no esté en el lexicón de stopwords
+							if (mapa.find(palabra) == mapa.end()) {
+								mapa.insert(pair<string, int>(palabra, 1));
+							}
+							else {
+								mapa[palabra]++;
+							}
+							cout << palabra << "---";//Remover posteriormente
+						}
+					}
+
+				}
+				i = i + tweet.size() + 7;
+				tweet = "";
+			}
+		}
+	}
+	doc.close();
+
+}
+
+
+
+//Recolección del top
+
+//Condición para hacer el ordenamiento
+bool Sort_by(const sort_map& a, const sort_map& b) {
+	return a.val > b.val;
+}
+
+void llenartop(map<string, int> & mapa, map<string, int> & topmapa) {
+	map<string, int>::iterator it;
+	vector< sort_map > v;
+	vector< sort_map >::iterator itv;
+	sort_map sm;
+
+	for (it = mapa.begin(); it != mapa.end(); ++it) {
+		sm.key = it->first;
+		sm.val = it->second;
+		v.push_back(sm);
+	}
+
+	sort(v.begin(), v.end(), Sort_by);
+
+	for (itv = v.begin(); itv != v.begin() + ntop; itv++) {
+		topmapa.insert(std::pair<string, int>(itv->key, itv->val));
+	}
+
+}
+
+//Impresión de mapas
+void imprimirmapa(map <string, int> &tabela) {
+	map<string, int>::iterator it;
+	for (it = tabela.begin(); it != tabela.end(); ++it) {
+		cout << it->first << ": " << it->second << endl;
+	}
+}
+
+void imprimirmapaapun(map <string, int> *tabela) {
+	map<string, int>::iterator it;
+	for (it = tabela->begin(); it != tabela->end(); ++it) {
+		cout << it->first << ": " << it->second << endl;
+	}
+}
+
+//Coeficiente de similitud
+float similitud(map<string, int> & mapa1, map<string, int> & mapa2) {	//Revisar el iterador, no funciones bien
+	map<string, int>::iterator it;
+	float cont = 0;
+	for (it = mapa1.begin(); it != mapa1.begin(); it++) {
+		if (mapa2.find(it->first) != mapa2.end()) {
+			cont++;
+		}
+	}
+
+	float indice = cont / ntop;
+	return indice;
+}

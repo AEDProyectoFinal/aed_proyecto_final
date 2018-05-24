@@ -292,7 +292,7 @@ void imprimirmapaapun(map <string, int> *tabela) {
 float similitud(map<string, int> & mapa1, map<string, int> & mapa2) {	//Revisar el iterador, no funciones bien
 	map<string, int>::iterator it;
 	float cont = 0;
-	for (it = mapa1.begin(); it != mapa1.begin(); it++) {
+	for (it = mapa1.begin(); it != mapa1.end(); it++) {
 		if (mapa2.find(it->first) != mapa2.end()) {
 			cont++;
 		}

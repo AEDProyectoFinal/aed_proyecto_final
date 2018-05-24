@@ -1,23 +1,14 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include<map>
+#include<fstream>
+#include<vector>
 #include "twitcurl.h"
 #include "oauthlib.h"
 #include <algorithm>
 #include "ArbolAVL.h"
 using namespace std;
-
-FILE _iob[] = { *stdin,*stdout,*stderr };
-extern "C" FILE * __cdecl __iob_func(void) { return _iob; }
-extern "C" void __imp__set_output__format(void) {}
-float similitud(map<string, int> & mapa1, map<string, int> & mapa2);
-void imprimirmapaapun(map <string, int> *tabela);
-void imprimirmapa(map <string, int> &tabela);
-void llenartop(map<string, int> & mapa, map<string, int> & topmapa);
-bool Sort_by(const sort_map &a, const sort_map &b);
-void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon);
-void llenarlexicon(ArbolAVL<string> & arbol);
-void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, ArbolAVL<string>  & lexicon);
 
 //Clase de la cual van a ser los elementos correspondientes a los individuos
 class persona {
@@ -35,7 +26,24 @@ public:
 };
 
 
-const float ntop = 50.0;//Definición del top
+FILE _iob[] = { *stdin,*stdout,*stderr };
+extern "C" FILE * __cdecl __iob_func(void) { return _iob; }
+extern "C" void __imp__set_output__format(void) {}
+float similitud(map<string, int> & mapa1, map<string, int> & mapa2);
+void imprimirmapaapun(map <string, int> *tabela);
+void imprimirmapa(map <string, int> &tabela);
+void llenartop(map<string, int> & mapa, map<string, int> & topmapa);
+bool Sort_by1(const sort_map &a, const sort_map &b);
+void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon);
+void llenarlexicon(ArbolAVL<string> & arbol);
+void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, ArbolAVL<string>  & lexicon);
+void txt_mapa(map<string, int> & mapa, string palabra);
+void guardar(map<string, int> & mapa, string palabra);
+
+
+
+
+const float ntop = 100.0;//Definición del top
 
 int main() {
 
@@ -63,7 +71,8 @@ int main() {
 	//Crear Lexicon
 	ArbolAVL<string> lexicon;		//Arbol para stopwords
 	llenarlexicon(lexicon);		//Se llena el arbol de stopwords
-	lexicon.imprimir();		//Prueba
+	//lexicon.imprimir();		//Remueva los caracteres "//" de esta linea y la siguiente si desea probar
+	//system("pause");
 
 
 	//Crear individuos
@@ -71,9 +80,9 @@ int main() {
 	map<string, int> palanalif;		//mapa individuo 2
 	map<string, int> palanalid;		//mapa individuo 3
 
-	map<string, int>top50p;		//Top individuo 1
-	map<string, int>top50f;		//Top individuo 2
-	map<string, int>top50d;		//Top individuo 3
+	map<string, int>topp;		//Top individuo 1
+	map<string, int>topf;		//Top individuo 2
+	map<string, int>topd;		//Top individuo 3
 
 	persona petro;		//Indiviudo 1
 	persona fajardo;	//Individuo 2
@@ -83,9 +92,9 @@ int main() {
 	fajardo.indv = "fajardo";
 	duque.indv = "duque";
 
-	petro.apuntop = &top50p;
-	fajardo.apuntop = &top50f;
-	duque.apuntop = &top50d;
+	petro.apuntop = &topp;
+	fajardo.apuntop = &topf;
+	duque.apuntop = &topd;
 
 
 
@@ -93,21 +102,28 @@ int main() {
 	llenar(petro.indv, palanalip, twitterObj, lexicon);
 	llenar(fajardo.indv, palanalif, twitterObj, lexicon);
 	llenar(duque.indv, palanalid, twitterObj, lexicon);
+	//imprimirmapa(palanalip);
+	//system("pause");
 
 
 	//Obtener el top N de cada individuo
-	llenartop(palanalip, top50p);
-	llenartop(palanalif, top50f);
-	llenartop(palanalid, top50d);
-
+	llenartop(palanalip, topp);
+	llenartop(palanalif, topf);
+	llenartop(palanalid, topd);
+	//imprimirmapa(topp);
+	//system("pause");
 
 	//Obtener coeficientes de similitud
-	float CS_P_D = similitud(*(petro.apuntop), *(duque.apuntop)); //En caso de no servir se pueden pasar los top50 respectivos
-	float CS_P_F = similitud(*(petro.apuntop), *(fajardo.apuntop));
-	float CS_D_F = similitud(*(duque.apuntop), *(fajardo.apuntop));
+	float CS_P_D = similitud(topp, topd);
+	float CS_P_F = similitud(topp, topf);
+	float CS_D_F = similitud(topd, topf);
 
+	cout << "Coef. Petro-Duque: "<< CS_P_D << endl;
+	cout << "Coef. Petro-Fajardo: " << CS_P_F << endl;
+	cout << "Coef. Duque-Fajardo: " << CS_D_F << endl;
+	
 
-
+	system("pause");
 	return 0;
 }
 
@@ -117,7 +133,11 @@ int main() {
 
 //Función que llena el mapa de cada individuo con la extracción de tweets 200 veces
 void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, ArbolAVL<string>  & lexicon) {
-	for (int i = 0; i <= 200; i++) {
+
+	//Obtener las palabras que se han recolectado previamente
+	txt_mapa(mapa, tmpStr);
+
+	for (int i = 0; i <= 15; i++) {
 		 
 		string replyMsg = "";
 		if (twitterObj.search(tmpStr))
@@ -132,8 +152,6 @@ void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, Arbol
 		}
 
 
-
-		system("pause");
 		ofstream out("Twitter_API.txt");
 		out << replyMsg;
 
@@ -141,6 +159,11 @@ void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, Arbol
 
 		out.close();
 	}
+
+	//Guardar en el historial las nuevas palabras ingresadas
+	guardar(mapa, tmpStr);
+
+
 }
 
 //LLena el arbol con el lexicón
@@ -163,7 +186,7 @@ void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon) {
 	string linea;
 	string tweet = "";
 	while (getline(doc, linea)) {
-		for (int i = 0; i<linea.length(); i++) {
+		for (int i = 0; i<linea.length()-4; i++) {
 			if (linea[i] == '"'&&linea[i + 1] == 't'&&linea[i + 2] == 'e'&&linea[i + 3] == 'x'&&linea[i + 4] == 't') {
 				int e = i + 8;
 				while (true) {
@@ -175,10 +198,9 @@ void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon) {
 
 				}
 				if (!(tweet[0] == 'R'&&tweet[1] == 'T'&&tweet[2] == ' ')) {
-					cout << tweet << endl;//Remover posteriormente
-										  //En esta linea se puede guardar el tweet en una estructura.
-
-										  //Contrucción del histograma.
+					//cout << tweet << endl;	//Remover posteriormente
+					
+					//Llenado del histograma.
 					string palabra = "";
 					for (int it2 = 0; it2 < tweet.length(); it2++) {
 						if (tweet[it2] == ' ' || tweet[it2] == ',' || tweet[it2] == ';' || tweet[it2] == ':' || tweet[it2] == '(' || tweet[it2] == ')' || tweet[it2] == '.' || tweet[it2] == '-') {
@@ -190,7 +212,7 @@ void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon) {
 									else {
 										mapa[palabra]++;
 									}
-									cout << palabra << "---";//Remover posteriormente
+									//cout << palabra << "---";		//Remover posteriormente
 								}
 							}
 							palabra = "";
@@ -208,7 +230,7 @@ void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon) {
 							else {
 								mapa[palabra]++;
 							}
-							cout << palabra << "---";//Remover posteriormente
+							//cout << palabra << "---";		//Remover posteriormente
 						}
 					}
 
@@ -227,7 +249,7 @@ void llenarhistogramapal(map<string, int> & mapa, ArbolAVL<string>  & lexicon) {
 //Recolección del top
 
 //Condición para hacer el ordenamiento
-bool Sort_by(const sort_map& a, const sort_map& b) {
+bool Sort_by1(const sort_map& a, const sort_map& b) {
 	return a.val > b.val;
 }
 
@@ -243,7 +265,7 @@ void llenartop(map<string, int> & mapa, map<string, int> & topmapa) {
 		v.push_back(sm);
 	}
 
-	sort(v.begin(), v.end(), Sort_by);
+	std::sort(v.begin(), v.end(), Sort_by1);
 
 	for (itv = v.begin(); itv != v.begin() + ntop; itv++) {
 		topmapa.insert(std::pair<string, int>(itv->key, itv->val));
@@ -279,3 +301,91 @@ float similitud(map<string, int> & mapa1, map<string, int> & mapa2) {	//Revisar 
 	float indice = cont / ntop;
 	return indice;
 }
+
+//Funciones para conservar el historial de palabras
+void guardar(map<string, int> & mapa, string palabra) {
+	std::map<string, int>::iterator it;
+	std::ofstream archivo;
+	if (palabra == "petro") {
+		archivo.open("petro.txt");
+		if (archivo.is_open()) {
+			for (it = mapa.begin(); it != mapa.end(); it++) {
+				archivo << it->first << "," << it->second << endl;
+				archivo.flush();
+			}
+		}
+		else {
+			cerr << "No se pudo guardar" << endl;
+		}
+	}
+	else if (palabra == "duque") {
+		archivo.open("duque.txt");
+		if (archivo.is_open()) {
+			for (it = mapa.begin(); it != mapa.end(); it++) {
+				archivo << it->first << "," << it->second << endl;
+				archivo.flush();
+			}
+		}
+		else {
+			cerr << "no se pudo guardar" << endl;
+		}
+	}
+	else if (palabra == "fajardo") {
+		archivo.open("fajardo.txt");
+		if (archivo.is_open()) {
+			for (it = mapa.begin(); it != mapa.end(); it++) {
+				archivo << it->first << "," << it->second << endl;
+				archivo.flush();
+			}
+		}
+		else {
+			cerr << "No se pudo guardar" << endl;
+		}
+
+	}
+	archivo.close();
+}
+
+void txt_mapa(map<string, int> & mapa, string palabra) {
+	std::map<string, int>::iterator it;
+	std::ifstream archivo;
+	string linea;
+	string delimitador = ",";
+	if (palabra == "petro") {
+		archivo.open("petro.txt");
+		if (archivo.is_open()) {
+			cout << "lo pudo abrir para leer" << endl;
+		}
+		else {
+			cerr << "No se pudo abrir" << endl;
+		}
+	}
+	else if (palabra == "duque") {
+		archivo.open("duque.txt");
+		if (archivo.is_open()) {
+			cout << "lo pudo abrir para leer" << endl;
+		}
+		else {
+			cerr << "No se pudo abrir" << endl;
+		}
+	}
+	else if (palabra == "fajardo") {
+		archivo.open("fajardo.txt");
+		if (archivo.is_open()) {
+			cout << "lo pudo abrir para leer" << endl;
+		}
+		else {
+			cerr << "No se pudo abrir" << endl;
+
+		}
+
+	}
+	while (getline(archivo, linea)) {
+		string palabra = linea.substr(0, linea.find(delimitador));
+		string entero = linea.substr(linea.find(delimitador) + 1, linea.length());
+		int entero1 = std::stoi(entero);
+		mapa.insert(pair<string, int>(palabra, entero1));
+	}
+	archivo.close();
+}
+

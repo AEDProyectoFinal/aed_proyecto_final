@@ -1,20 +1,18 @@
 /*
- * ArbolesAVL.h
- *
- *  Created on: 3/05/2018
- *      Author: vonnewmann
+ * ArbolAVL.h
+
  */
 
-#ifndef ARBOLESAVL_H_
-#define ARBOLESAVL_H_
+#ifndef ARBOLAVL_H_
+#define ARBOLAVL_H_
 
 template <typename TipoDato>
-class ArbolesAVL {
+class ArbolAVL {
 public:
 	/*
-	* Tipo: Nodo de �rbol de B�squeda Binaria
+	* Tipo: Nodo de Árbol de Búsqueda Binaria
 	* ----------
-	* Estructura para almacenar cada nodo del �rbol.
+	* Estructura para almacenar cada nodo del árbol.
 	*/
 
 	struct NodoAVL {
@@ -24,72 +22,86 @@ public:
 		int altura;
 	};
 
-	//Constructores
-	ArbolesAVL();
+	// Máximo imbalance permitido
+	static const int MAX_IMBALANCE = 1;
 
-	ArbolesAVL(TipoDato datoIni);
+	//Constructores
+	ArbolAVL();
+
+	ArbolAVL(TipoDato datoIni);
 
 	//~ArbolBusquedaBinaria();
 
-	//M�todos p�blicos
+	//Métodos públicos
+
+	int getAltura(NodoAVL* nodo);
+
 	bool buscar(TipoDato dato);
+
+	NodoAVL* buscarNodo(NodoAVL* nodo, TipoDato dato);
+
 
 	TipoDato minimo();
 
+	NodoAVL* minimoNodo(NodoAVL * nodo);
+
 	TipoDato maximo();
+
+	NodoAVL* maximoNodo(NodoAVL * nodo);
 
 	TipoDato predecesor(TipoDato dato);
 
+	NodoAVL* predecesorNodo(NodoAVL* nodo, TipoDato dato);
+
 	TipoDato sucesor(TipoDato dato);
+
+	NodoAVL* sucesorNodo(NodoAVL* nodo);
 
 	NodoAVL* getNodoPadre(TipoDato dato);
 
+	NodoAVL* getNodoPadre(TipoDato dato, NodoAVL * nodo);
+
 	void insertar(TipoDato dato);
 
-	int altura(NodoAVL * nodo);
+	void insertarNodo(NodoAVL * & nodo, TipoDato dato);
 
 	void eliminar(TipoDato dato);
+
+	void eliminarNodo(NodoAVL * & nodo, TipoDato dato);
 
 	void imprimir();
 
 	void imprimirArbol(NodoAVL * nodo);
 
-	/*
+	void balancear(NodoAVL * & nodo);
 
-	void imprimirPreOrden();typename ArbolBusquedaBinaria<TipoDato>::NodoABB
+	void rotarHijoIzq(NodoAVL * & nodo);
+
+	void rotarHijoDer(NodoAVL * & nodo);
+
+	void dobleRotacionHijoIzq(NodoAVL * & nodo);
+
+	void dobleRotacionHijoDer(NodoAVL * & nodo);
+
+
+
+	void imprimirPreOrden();
+
+	void imprimirArbolPreOrden(NodoAVL * nodo);
 
 	void imprimirPostOrden();
 
-	*/
+	void imprimirArbolPostOrden(NodoAVL * nodo);
+
+
 
 private:
 	/* Atributos */
-	NodoAVL *raiz; 	/* Apuntador al nodo ra�z del �rbol */
-
-
-	NodoAVL* buscarNodo(NodoAVL* nodo, TipoDato dato);
-
-	NodoAVL* minimoNodo(NodoAVL * nodo);
-
-	NodoAVL* maximoNodo(NodoAVL * nodo);
-
-	NodoAVL* predecesorNodo(NodoAVL* nodo, TipoDato dato);
-
-	NodoAVL* sucesorNodo(NodoAVL* nodo);
-
-	NodoAVL* getNodoPadre(TipoDato dato, NodoAVL * nodo);
-
-	void insertarNodo(NodoAVL * & nodo, TipoDato dato);
-
-	void actualizaraltura(NodoAVL * &nodo);
-
-	void eliminarNodo(NodoAVL * & nodo, TipoDato dato);
+	NodoAVL *raiz; 	/* Apuntador al nodo raíz del árbol */
 };
 
 
 
+#endif /* ARBOLAVL_H_ */
 
-#endif /* ARBOLESAVL_H_ */
-
-#include "ArbolesAVL.cpp"
-
+#include "ArbolAVL.cpp"

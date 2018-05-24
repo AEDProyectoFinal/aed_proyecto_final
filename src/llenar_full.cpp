@@ -25,7 +25,7 @@ void guardar( map<string, int> & mapa,string palabra){
 		archivo.open("duque.txt");
 		if(archivo.is_open()){
 				for(it = mapa.begin();it!=mapa.end();it++){
-					archivo << it->first << "," <<it->second ;
+					archivo << it->first << "," <<it->second << endl;
 					archivo.flush();
 					}
 		}
@@ -37,7 +37,7 @@ void guardar( map<string, int> & mapa,string palabra){
 		archivo.open("fajardo.txt");
 		if(archivo.is_open()){
 				for(it = mapa.begin();it!=mapa.end();it++){
-				archivo << it->first << "," <<it->second ;
+				archivo << it->first << "," <<it->second << endl ;
 				archivo.flush();
 				}
 		}

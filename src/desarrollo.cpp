@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <cctype>
-#include "twitcurl.h"
+#include "twitcurl.h" //Libreria externa utilizada, puede verse completa en el siguiente enlace : https://github.com/swatkat/twitcurl
 #include "oauthlib.h"
 #include <algorithm>
 #include "ArbolAVL.h"

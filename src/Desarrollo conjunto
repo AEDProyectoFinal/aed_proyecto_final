@@ -39,6 +39,8 @@ void llenarlexicon(ArbolAVL<string> & arbol);
 void llenar(string tmpStr, map<string, int> & mapa, twitCurl & twitterObj, ArbolAVL<string>  & lexicon);
 void txt_mapa(map<string, int> & mapa, string palabra);
 void guardar(map<string, int> & mapa, string palabra);
+void creargrafopal(string candidato, map<string, int> mapa);
+void creargraficaCS(float coef, float coef2);
 
 
 
@@ -122,6 +124,16 @@ int main() {
 	cout << "Coef. Petro-Fajardo: " << CS_P_F << endl;
 	cout << "Coef. Duque-Fajardo: " << CS_D_F << endl;
 	
+	creargrafopal(petro.indv, *(petro.apuntop));
+
+        creargraficaCS(0.13, 0.26);
+	
+	
+	system("\"C:\\Program Files\\MiKTeX 2.9\\miktex\\bin\\x64\\pdflatex.exe\" -output-directory C:\\data\\  C:\\data\\toppalind.tex");
+	system("\"C:\\Program Files\\MiKTeX 2.9\\miktex\\bin\\x64\\pdflatex.exe\" -output-directory C:\\data\\  C:\\data\\coefsimil.tex");
+
+	system("\"C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRD32.exe\" C:\\data\\toppalind.pdf");
+	system("\"C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRD32.exe\" C:\\data\\coefsimil.pdf");
 
 	system("pause");
 	return 0;
@@ -388,4 +400,131 @@ void txt_mapa(map<string, int> & mapa, string palabra) {
 	}
 	archivo.close();
 }
+
+
+
+void creargrafopal(string candidato, map<string, int> mapa) {
+
+	//Extracción de las primeras 8 palabras.
+	map<string, int>::iterator it;
+	vector< sort_map > vec;
+	sort_map sm;
+
+	for (it = mapa.begin(); it != mapa.end(); ++it) {
+		sm.key = it->first;
+		sm.val = it->second;
+		vec.push_back(sm);
+	}
+
+	std::sort(vec.begin(), vec.end(), Sort_by1);
+
+
+	std::ofstream archivo;
+	archivo.open("C:/data/toppalind.tex");
+	if (archivo.is_open()) {
+		archivo << "\\documentclass{article}" << endl;
+		archivo << "\\usepackage{tikz}" << endl;
+		archivo << "\\usepackage[active,tightpage]{preview}" << endl;
+		archivo << "\\PreviewEnvironment{tikzpicture}" << endl;
+		archivo << "\\setlength\\PreviewBorder{10pt}" << endl;
+		archivo << "\\definecolor{lavander}{cmyk}{0,0.48,0,0}" << endl;
+		archivo << "\\definecolor{violet}{cmyk}{0.79,0.88,0,0}" << endl;
+		archivo << "\\definecolor{burntorange}{cmyk}{0,0.52,1,0}" << endl;
+		archivo << "\\def\\lav{lavander!90}" << endl;
+		archivo << "\\def\\oran{orange!30}" << endl;
+		archivo << endl;
+		archivo << endl;
+		archivo << "\\tikzstyle{peers}=[draw,circle,violet,bottom color=\\lav, top color= white, text=violet,minimum width=10pt]" << endl;
+		archivo << "\\tikzstyle{superpeers}=[draw,rectangle,burntorange, left color=\\oran, text=violet,minimum width=40pt]" << endl;
+		archivo << "\\tikzstyle{legendsp}=[rectangle, draw, burntorange, rounded corners, thin,bottom color=\\oran, top color=white, text=burntorange, minimum width=2.5cm]" << endl;
+		archivo << "\\tikzstyle{legend_general}=[rectangle, rounded corners, thin, burntorange, fill= white, draw, text=violet, minimum width=2.5cm, minimum height=0.8cm]" << endl;
+		archivo << endl;
+		archivo << endl;
+		archivo << "\\begin{document}" << endl;
+		archivo << "\\begin{tikzpicture}[auto, thick]" << endl;
+		archivo << endl;
+		archivo << "  % Poner superpeer para el elemento de candidato" << endl;
+		archivo << "  \\foreach \\place/\\name in {{(5,2)/"<< candidato <<"}}" << endl;
+		archivo << "    \\node[superpeers] (\\name) at \\place {\\name};" << endl;
+		archivo << endl;
+		archivo << "   % Palabras del top del candidato" << endl;
+		archivo << "   \\foreach \\place/\\name in {{(5,5)/"<< vec[0].key<<"},{(5,-1)/"<<vec[1].key<<"},{(7.5,4.5)/"<<vec[2].key<<"},{(7.5,-0.5)/"<<vec[3].key<<"},{(2.5,4.5)/"<<vec[4].key<<"},{(2.5,-0.5)/"<<vec[5].key<<"},{(2,2)/"<<vec[6].key<<"},{(8,2)/"<<vec[7].key<<"}}" << endl;
+		archivo << "   \\node[peers] (\\name) at \\place {\\name};" << endl;
+		archivo << endl;
+		archivo << "%Lineas" << endl;
+		archivo << "   \\foreach \\source/\\dest in { "<<candidato<<"/"<<vec[0].key<<", "<<candidato<<"/"<<vec[1].key<<", "<<candidato<<"/"<<vec[2].key<<", "<<candidato<<"/"<<vec[3].key<<", "<<candidato<<"/"<< vec[4].key<<", "<<candidato<<"/"<<vec[5].key<<", "<<candidato<<"/"<<vec[6].key<<", "<<candidato<<"/"<<vec[7].key<<"}" << endl;
+		archivo << "   \\path (\\source) edge (\\dest);" << endl;
+		archivo << endl;
+		archivo << "   % Legends" << endl;
+		archivo << "   \\node[legend_general] at (1,6) {\\small{\\textsc{Top candidato}}};" << endl;
+		archivo << endl;
+		archivo << "\\end{tikzpicture}" << endl;
+		archivo << "\\end{document}" << endl;
+
+
+	}
+	else {
+		cerr << "No se pudo guardar" << endl;
+	}
+	archivo.close();
+
+}
+
+
+void creargraficaCS(float coef, float coef2) {
+
+	float distancia1 = (1 - coef) * 2;
+	float distancia2 = (1 - coef2) * 2;
+
+	std::ofstream archivo;
+	archivo.open("C:/data/coefsimil.tex");
+	if (archivo.is_open()) {
+		archivo << "\\documentclass{article}" << endl;
+		archivo << "\\usepackage{tikz}" << endl;
+		archivo << "\\usepackage[active,tightpage]{preview}" << endl;
+		archivo << "\\PreviewEnvironment{tikzpicture}" << endl;
+		archivo << "\\setlength\\PreviewBorder{10pt}" << endl;
+		archivo << "\\definecolor{lavander}{cmyk}{0,0.48,0,0}" << endl;
+		archivo << "\\definecolor{violet}{cmyk}{0.79,0.88,0,0}" << endl;
+		archivo << "\\definecolor{burntorange}{cmyk}{0,0.52,1,0}" << endl;
+		archivo << "\\def\\lav{lavander!90}" << endl;
+		archivo << "\\def\\oran{orange!30}" << endl;
+		archivo << endl;
+		archivo << endl;
+		archivo << "\\tikzstyle{levelone} = [draw, circle, blue, bottom color = white, text = white, minimum width = 120pt]" << endl;
+		archivo << "\\tikzstyle{leveltwo} = [draw, circle, blue, bottom color = white, text = white, minimum width = 80pt]" << endl;
+		archivo << "\\tikzstyle{levelthree} = [draw, circle, blue, bottom color = white, text = white, minimum width = 40pt]" << endl;
+		archivo << "\\tikzstyle{superpeers} = [draw, circle, burntorange, left color = \\oran,text = violet, minimum width = 15pt]" << endl;
+		archivo << "\\tikzstyle{legendsp} = [rectangle, draw, burntorange, rounded corners,thin, bottom color = \\oran, top color = white,text = burntorange, minimum width = 2.5cm]" << endl;
+		archivo << endl;
+		archivo << "\\begin{document}" << endl;
+		archivo << "\\begin{tikzpicture}[auto, thick]" << endl;
+		archivo << endl;
+		archivo << "  \\foreach \\place/\\name in {(0,0)/lone}" << endl;
+		archivo << "    \\node[levelone] (\\name) at \\place {};" << endl;
+		archivo << endl;
+		archivo << "  \\foreach \\place/\\name in {(0,0)/ltwo}" << endl;
+		archivo << "    \\node[leveltwo] (\\name) at \\place {};" << endl;
+		archivo << endl;
+		archivo << "  \\foreach \\place/\\name in {(0,0)/lthree}" << endl;
+		archivo << "    \\node[levelthree] (\\name) at \\place {};" << endl;
+		archivo << endl;
+		archivo << "% Place super peers" << endl;
+		archivo << "  \\foreach \\place/\\name in {{(0,0)/P}, {("<<distancia1<<",0)/D}, {("<<-distancia2<<",0)/F}}" << endl;
+		archivo << "    \\node[superpeers] (\\name) at \\place {\\name};" << endl;
+		archivo << endl;
+		archivo << "%Legends" << endl;
+		archivo << "   \\node[legendsp] at (3,-2) {\\small{D:"<<coef<<", F:"<<coef2<<"}};" << endl;
+		archivo << endl;
+		archivo << "\\end{tikzpicture}" << endl;
+		archivo << "\\end{document}" << endl;
+
+	} else {
+
+		cerr << "No se pudo guardar" << endl;
+	}
+	archivo.close();
+
+}
+
 
